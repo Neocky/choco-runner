@@ -12,8 +12,9 @@
 > Rapid fast multi package installer for chocolatey packages
 
 Installs multiple [Chocolatey Packages](https://community.chocolatey.org/packages) paralell to each other with different threads.  
-Installs [Chocolatey](https://chocolatey.org/) if it is not installed which then can be removed via the prompt or with the param `-removeChocoAfterwards`.  
-Find all Chocolatey packagegs here: https://community.chocolatey.org/packages
+Installs [Chocolatey](https://chocolatey.org/) if it is not installed which then can be removed via the prompt or  
+with the param `-removeChocoAfterwards`.  
+Find all Chocolatey packages here: https://community.chocolatey.org/packages
 
 ## Useage
 ##### This script needs to be run as administrator.
