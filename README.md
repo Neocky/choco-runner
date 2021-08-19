@@ -20,5 +20,5 @@ Find all Chocolatey packagegs here: https://community.chocolatey.org/packages
 #### Example:
 Installs `Firefox` and `7Zip` and removes `Chocolatey` afterwards:
 ```PowerShell
-.\choco-runner -package firefox,7zip.install -removeChocoAfterwards
+.\choco-runner.ps1 -package firefox,7zip.install -removeChocoAfterwards
 ```
