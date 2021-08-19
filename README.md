@@ -11,7 +11,7 @@
 
 > Rapid fast multi package installer for chocolatey packages
 
-Installs multiple [Chocolatey Packages](https://community.chocolatey.org/packages) paralell to each other.  
+Installs multiple [Chocolatey Packages](https://community.chocolatey.org/packages) paralell to each other with different threads.  
 Installs [Chocolatey](https://chocolatey.org/) if it is not installed which then can be removed via the prompt or with the param `-removeChocoAfterwards`.  
 Find all Chocolatey packagegs here: https://community.chocolatey.org/packages
 
@@ -21,4 +21,19 @@ Find all Chocolatey packagegs here: https://community.chocolatey.org/packages
 Installs `Firefox` and `7Zip` and removes `Chocolatey` afterwards:
 ```PowerShell
 .\choco-runner.ps1 -package firefox,7zip.install -removeChocoAfterwards
+```
+
+#### All parameters
+```
+.PARAMETER package
+A list of packages which should be installed/upgraded. Seperate it with a ",".
+
+.PARAMETER removeChocoAfterwards
+Removes Chocolatey afterwards when this parameter is given.
+
+.PARAMETER keepChocoAfterwards
+Keeps Chocolatey afterwards when this parameter is given.
+
+.PARAMETER threads
+Maximum numbers of threads (Default=256)
 ```
