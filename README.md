@@ -16,12 +16,16 @@ Installs [Chocolatey](https://chocolatey.org/) if it is not installed which then
 with the param `-removeChocoAfterwards`.  
 Find all Chocolatey packages here: https://community.chocolatey.org/packages
 
-## Useage
+## Usage
 ##### This script needs to be run as administrator.
 #### Example:
 Installs `Firefox` and `7Zip` and removes `Chocolatey` afterwards:
 ```PowerShell
 .\choco-runner.ps1 -package firefox,7zip.install -removeChocoAfterwards
+```
+##### Supports Pipeline input:
+```PowerShell
+"7zip.install" | .\choco-runner.ps1
 ```
 
 #### All parameters
