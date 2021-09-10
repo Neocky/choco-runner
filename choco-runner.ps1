@@ -7,10 +7,6 @@ Installs/upgrades programs super fast with chocolatey and installs chocolatey if
 More than one program can be given to as param -package to run the installation in different threads.
 This script needs to be run as administrator.
 
-.EXAMPLE
-.\choco-runner -package 7zip.install,firefoxesr -removeChocoAfterwards
-Installs 7zip & firefox and removes Chocolatey afterwards.
-
 .PARAMETER package
 A list of packages which should be installed/upgraded. Seperate it with a ",".
 
@@ -23,16 +19,19 @@ Keeps Chocolatey afterwards when this parameter is given.
 .PARAMETER threads
 Maximum numbers of threads (Default=256)
 
+.EXAMPLE
+.\choco-runner -package 7zip.install,firefoxesr -removeChocoAfterwards
+Installs 7zip & firefox and removes Chocolatey afterwards.
+
 .NOTES
 Author: Neocky
-Version: 1.2.0
+Version: 1.3.0
 
 .LINK
 https://github.com/Neocky/choco-runner
 
 #>
 #Requires -RunAsAdministrator
-
 
 [CmdletBinding()]
 param (
@@ -44,7 +43,8 @@ param (
 
 Process {
 
-    function writeTitle {
+    # Writes the title screen to the console
+    function Write-ScriptTitle {
         Write-Host "      ┌────────────────────────────────────────┐"
         Write-Host "      │              " -NoNewline; Write-Host "CHOCO RUNNER" -ForegroundColor Yellow -NoNewline; Write-Host "              │"
         Write-Host "      │ " -NoNewline; Write-Host "https://github.com/Neocky/choco-runner" -ForegroundColor Cyan -NoNewline; Write-Host " │"
@@ -52,14 +52,15 @@ Process {
     }
 
 
-    function checkParam {
+    # Checks the given parameters and writes a help message if no package was given
+    function Test-Params {
         [CmdletBinding()]
         param (
             [Parameter()][array]$programsToInstall,
             [Parameter()][Boolean]$removeChocolateyAfter,
             [Parameter()][Boolean]$keepChocolateyAfter
         )
-        
+
         if (($programsToInstall).Count -eq 0) {
             Write-Warning "Package name is required. Please use the parameter: -package PACKAGENAME1,PACKAGENAME2"
             Write-Output "Here is a list with all available packages to install: https://community.chocolatey.org/packages"
@@ -73,7 +74,7 @@ Process {
             ) -join "`n" | Write-Output
             Exit 1
         }
-        
+
         if (($removeChocolateyAfter -eq $True) -and ($keepChocolateyAfter -eq $True)) {
             Write-Warning "Can't use both parameters 'removeChocoAfterwards' & 'keepChocoAfterwards' at once"
             Exit 1
@@ -81,7 +82,8 @@ Process {
     }
 
 
-    function installChocolatey {
+    # Installs Chocolatey with the Chocolatey install script
+    function Install-Chocolatey {
         Write-Output "Installing Chocolatey..."
         try {
             Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) -ErrorAction Stop
@@ -93,7 +95,8 @@ Process {
     }
 
 
-    function removeChocolatey {
+    # Removes the default Install direcotry for Chocolatey
+    function Remove-Chocolatey {
         Write-Output "Removing Chocolatey..."
         try {
             Remove-Item -Path "C:\ProgramData\chocolatey" -Force -Recurse -ErrorAction Stop
@@ -106,18 +109,19 @@ Process {
     }
 
 
-    function checkChocolateyInstall {
+    # Checks if chocolatey was installed successfully and if not will run installer again
+    function Get-ChocolateyInstall {
         try {
             $chocoInstalled = Test-Path $env:ChocolateyInstall -ErrorAction Stop
         }
         catch {
             $chocoInstalled = $False
         }
-    
+
         if ($chocoInstalled -eq $False) {
             Write-Output "Chocolatey wasn't found on the system."
-            installChocolatey
-        
+            Install-Chocolatey
+
             if (-not (Test-Path $env:ChocolateyInstall)) {
                 Write-Output "Chocolatey couldn't be installed correctly. Exiting program..."
                 Exit 1
@@ -126,22 +130,24 @@ Process {
     }
 
 
+    # chocolatey package installer which will run in different threads
     $installer = {
         [CmdletBinding()]
         param (
             [Parameter(Mandatory = $True)][String]$chocoProgram
         )
         
-        function installPackage {
+        # Installs/Upgrades the chocolatey package
+        function Install-ChocoPackage {
             [CmdletBinding()]
             param (
                 [Parameter()][array]$programsToInstall
             )
             choco upgrade $programsToInstall -y --limitoutput --no-progress
         }
-            
+
         try {
-            installPackage -programsToInstall $chocoProgram -ErrorAction Stop
+            Install-ChocoPackage -programsToInstall $chocoProgram -ErrorAction Stop
         }
         catch {
             Write-Host "● " -ForegroundColor Red -NonewLine; Write-Host "Couldn't install: " -ForegroundColor Red -NoNewline; Write-Host "$chocoProgram"
@@ -149,16 +155,16 @@ Process {
         }
         Write-Host "● " -ForegroundColor Green -NonewLine; Write-Host "Successfully installed: " -ForegroundColor Green -NoNewline; Write-Host "$chocoProgram"
     }
-        
-        
-    checkParam -programsToInstall $package -removeChocolateyAfter $removeChocoAfterwards -keepChocolateyAfter $keepChocoAfterwards
-    writeTitle
-    checkChocolateyInstall
+
+
+    Test-Params -programsToInstall $package -removeChocolateyAfter $removeChocoAfterwards -keepChocolateyAfter $keepChocoAfterwards
+    Write-ScriptTitle
+    Get-ChocolateyInstall
     Write-Host ""
     Write-Host "Packages to install: " -ForegroundColor Green
     Write-Output $package
     Write-Host ""
-        
+
     $RunspacePool = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspacePool(1, $threads, $Host)
     $RunspacePool.Open()
     [System.Collections.ArrayList]$jobs = @()
@@ -175,18 +181,18 @@ Process {
             
         [void]$jobs.Add($jobObj)
     }
-        
-        
+
+
     $i = 0 # needed for progress bar
     Do {
-        Write-Progress -Activity "Installing choco packages..." -Status ("[ $i / " + $package.Count + " ] packages finished") -PercentComplete ($i / $package.Count * 100)
+        Write-Progress -Activity "Installing choco packages..." -Status ("[ $i / " + $package.Count + " ] Packages finished") -PercentComplete ($i / $package.Count * 100)
         $unfinishedJobs = $jobs | Where-Object -FilterScript { $_.Result.IsCompleted }
-            
+
         if ($null -eq $unfinishedJobs) {
             Start-Sleep -Milliseconds 250
             continue
         }
-            
+
         foreach ($job in $unfinishedJobs) {
             $jobOutput = $job.Pipe.EndInvoke($job.Result)
             $job.Pipe.Dispose()
@@ -195,15 +201,15 @@ Process {
             $i++
         }
     } While ($jobs.Count -gt 0)
-        
+
     # close all threads
     $RunspacePool.Close()
     $RunspacePool.Dispose()
-        
+
     if (($removeChocoAfterwards -ne $True) -and ($keepChocoAfterwards -ne $True)) {
         $removeChocolateyConfirmation = Read-Host "Remove Chocolatey? (y/n)"
     }
     if (($removeChocolateyConfirmation -eq "y") -or ($removeChocoAfterwards -eq $True) -and ($keepChocoAfterwards -ne $True)) {
-        removeChocolatey
+        Remove-Chocolatey
     }        
 }
