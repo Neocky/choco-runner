@@ -1,9 +1,9 @@
 <div class="row">
   <div class="column">
-    <img align="right" src="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/60/google/274/horse_1f40e.png" alt="logo" width="60">
+    <img align="right" src="https://em-content.zobj.net/thumbs/60/microsoft/319/horse_1f40e.png" alt="logo" width="60">
   </div>
   <div class="column">
-    <img align="right" src="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/60/google/274/chocolate-bar_1f36b.png" alt="logo" width="60">
+    <img align="right" src="https://em-content.zobj.net/thumbs/60/microsoft/319/chocolate-bar_1f36b.png" alt="logo" width="60">
   </div>
 </div>
 
